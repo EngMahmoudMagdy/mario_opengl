@@ -9,14 +9,14 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 using namespace std;
-float vertices[] =
+float mario_vertices[] =
 {
 	-0.711155, -0.461412,
 	-0.951618, -0.461412,
 	-0.951618, -0.701876,
 	-0.711155, -0.701876
 };
-float basevertices[] =
+float base_vertices[] =
 {
 	1, -0.7,
 	-1, -.7,
@@ -24,7 +24,20 @@ float basevertices[] =
 	1, -1
 
 };
-GLuint ltexture, basetextureid;
+float enemy_vertices[]{
+	0.701876, -.5,
+	0.951618,-.5,
+	0.951618, -0.701876,
+	0.701876, -0.701876
+};
+
+float cloud_vertices[]{
+	0.701876, -.5,
+	0.951618,-.5,
+	0.951618, -0.701876,
+	0.701876, -0.701876
+};
+GLuint mario_texture, base_textureid, enemy_texture, cloud_texture;
 #pragma warning(diable:4996)
 GLuint loadTexture(const char * filename)
 {
@@ -79,7 +92,7 @@ GLuint loadTexture(const char * filename)
 	return  texture;
 }
 
-void draw(float vertices1[], GLuint texture)
+void draw_mario(float vertices1[], GLuint texture)
 {
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glBegin(GL_QUADS);
@@ -95,7 +108,7 @@ void draw(float vertices1[], GLuint texture)
 	glEnd();
 }
 
-void drawbase(float vertices1[], GLuint texture)
+void draw_base(float vertices1[], GLuint texture)
 {
 	/*glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);*/
@@ -112,58 +125,99 @@ void drawbase(float vertices1[], GLuint texture)
 	glVertex2f(vertices1[6], vertices1[7]);
 	glEnd();
 }
+
+void draw_enemy(float vertices1[], GLuint texture)
+{
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glBegin(GL_QUADS);
+	glutSwapBuffers();
+	glTexCoord2d(1, 1);
+	glVertex2f(vertices1[0], vertices1[1]);
+	glTexCoord2d(0, 1);
+	glVertex2f(vertices1[2], vertices1[3]);
+	glTexCoord2d(0, 0);
+	glVertex2f(vertices1[4], vertices1[5]);
+	glTexCoord2d(1, 0);
+	glVertex2f(vertices1[6], vertices1[7]);
+	glEnd();
+}
+void draw_cloud(float vertices1[], GLuint texture)
+{
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glBegin(GL_QUADS);
+	glutSwapBuffers();
+	glTexCoord2d(1, 1);
+	glVertex2f(vertices1[0], vertices1[1]);
+	glTexCoord2d(0, 1);
+	glVertex2f(vertices1[2], vertices1[3]);
+	glTexCoord2d(0, 0);
+	glVertex2f(vertices1[4], vertices1[5]);
+	glTexCoord2d(1, 0);
+	glVertex2f(vertices1[6], vertices1[7]);
+	glEnd();
+}
+
 void Display()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor4f(1, 1, 1, 1);
-	drawbase(basevertices, basetextureid);
-	draw(vertices,ltexture);
+	draw_base(base_vertices, base_textureid);
+	draw_mario(mario_vertices,mario_texture);
+	draw_enemy(enemy_vertices, enemy_texture);
+	//draw_cloud(cloud_vertices, cloud_texture);
 	glFlush();
 	
 }
-void rotate(float th)
-{
-	vertices[0] = vertices[0] * cos(th*(M_1_PI/180)) - vertices[1] * sin(th*(M_1_PI / 180));
-	vertices[2]= vertices[2] * cos(th*(M_1_PI / 180)) - vertices[3] * sin(th*(M_1_PI / 180));
-	vertices[4]= vertices[4] * cos(th*(M_1_PI / 180)) - vertices[5] * sin(th*(M_1_PI / 180));
-	vertices[6]= vertices[6] * cos(th*(M_1_PI / 180)) - vertices[7] * sin(th*(M_1_PI / 180));
 
-	vertices[1]= vertices[0] * sin(th*(M_1_PI / 180))+ vertices[1] * cos(th*(M_1_PI / 180));
-	vertices[3]= vertices[2] * sin(th*(M_1_PI / 180))+ vertices[3] * cos(th*(M_1_PI / 180));
-	vertices[5]= vertices[4] * sin(th*(M_1_PI / 180))+ vertices[5] * cos(th*(M_1_PI / 180));
-	vertices[7]= vertices[6] * sin(th*(M_1_PI / 180))+ vertices[7] * cos(th*(M_1_PI / 180));
-
-	draw(vertices, ltexture);
-
-}
 void changeY(float x)
 {
-	vertices[0] += x;
-	vertices[2] += x;
-	vertices[4] += x;
-	vertices[6] += x;
-	/*cout << vertices[0] << endl;
-	cout << vertices[2] << endl;
-	cout << vertices[4] << endl;
-	cout << vertices[6] << endl;*/
-	draw(vertices, ltexture);
+	float mario_right_boundry = mario_vertices[4] + x;
+	float mario_left_boundry = mario_vertices[6] + x;
+
+	if (mario_right_boundry >= 0) {
+		for (int i = 0; i < 8; i++)
+			mario_vertices[i] *= .2;
+	}
+	else if (mario_left_boundry >-.75545 && mario_right_boundry<.75545) {
+
+		mario_vertices[0] += x;
+		mario_vertices[2] += x;
+		mario_vertices[4] += x;
+		mario_vertices[6] += x;
+
+		enemy_vertices[0] -= x;
+		enemy_vertices[2] -= x;
+		enemy_vertices[4] -= x;
+		enemy_vertices[6] -= x;
+
+		/*cout << vertices[0] << endl;
+		cout << vertices[2] << endl;
+		cout << vertices[4] << endl;
+		cout << vertices[6] << endl;*/
+		draw_mario(mario_vertices, mario_texture);
+		draw_enemy(enemy_vertices, enemy_texture);
+	}
 }
 void changeX(float x)
 {
-	vertices[1] += x;
-	vertices[3] += x;
-	vertices[5] += x;
-	vertices[7] += x;
-	/*cout << vertices[1] << endl;
-	cout << vertices[3] << endl;
-	cout << vertices[5] << endl;
-	cout << vertices[7] << endl;*/
-	draw(vertices, ltexture);
+	float bottom_boundry = mario_vertices[7] + x;
+	float top_boundry = mario_vertices[1] + x;
+	if (bottom_boundry > -0.701876 &&top_boundry < 1) {
+		mario_vertices[1] += x;
+		mario_vertices[3] += x;
+		mario_vertices[5] += x;
+		mario_vertices[7] += x;
+		/*cout << vertices[1] << endl;
+		cout << vertices[3] << endl;
+		cout << vertices[5] << endl;
+		cout << vertices[7] << endl;*/
+		draw_mario(mario_vertices, mario_texture);
+	}
 }
 void scale(float x)
 {
 	for(int i = 0 ; i < 8 ; i++)
-	vertices[i] *= x;
+		mario_vertices[i] *= x;
 
 	/*cout << vertices[0] << endl;
 	cout << vertices[2] << endl;
@@ -186,16 +240,6 @@ void keyPressed(unsigned char key, int x, int y) {
 		cout << "Scale Small" << endl;
 		break;
 	case 'L':
-	case 'l':
-		rotate(-5);
-		cout << "Rotate left" << endl;
-		break;
-	case 'R':
-	case 'r':
-		rotate(5);
-		cout << "Rotate Right" << endl;
-		break;
-	case 'W':
 	case 'w':
 		changeX(0.1);
 		cout << "UP"<<endl;
@@ -258,8 +302,10 @@ int main(int argc, char** argv)
 
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	ltexture = loadTexture("images/mario.bmp");
-	basetextureid=loadTexture("images/newbase.bmp");
+	mario_texture = loadTexture("images/mario.bmp");
+	base_textureid=loadTexture("images/newbase.bmp");
+	enemy_texture=loadTexture("images/enemy.bmp");
+	//cloud_texture = loadTexture("images/cloud1.bmp");
 	glutDisplayFunc(Display);//links the display event with the display event handler(display)
 	glutIdleFunc(Display);
 
